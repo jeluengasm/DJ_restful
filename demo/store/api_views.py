@@ -5,7 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend # Create some filt
 from .serializers import ProductSerializer
 from .models import Product
 
-class ProductList(ListAPIView):
+class ProductList(ListAPIView): # Extends from ListAPIView (only GET request)
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = (DjangoFilterBackend,)
