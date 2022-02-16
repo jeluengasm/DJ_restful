@@ -1,10 +1,12 @@
 from xml.dom import ValidationErr
 from django.utils import timezone
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView
 from django_filters.rest_framework import DjangoFilterBackend # Create some filters for the API (according to the attributes selected from the view)
 from rest_framework.filters import SearchFilter # Create a search filter (based on substrings, according to the attributes selected from the view)
 from rest_framework.pagination import LimitOffsetPagination # Allows the pagination of the view
 from rest_framework.exceptions import ValidationError # Exception handler to raise in ValidationError
+from django.core.cache import cache
+
 
 from .serializers import ProductSerializer
 from .models import Product
@@ -13,7 +15,7 @@ class ProductsPagination(LimitOffsetPagination):
     """ Pagination class, with internal properties
         See documentation in: https://www.django-rest-framework.org/api-guide/pagination/
     """
-    default_limit = 3 
+    default_limit = 5 
     max_limit = 100
 
 
@@ -59,3 +61,17 @@ class ProductCreate(CreateAPIView):
             raise ValidationError({'price': 'A valid number is required.'})
         return super().create(request, *args, **kwargs)
         
+class ProductDestroy(DestroyAPIView,ProductList):
+    """ Used for delete-only endpoints.
+        Provides a DELETE method handler. Doc. in: https://www.django-rest-framework.org/api-guide/generic-views/#destroyapiview
+    """
+    queryset = Product.objects.all()
+    lookup_field = 'id'
+    
+    def delete(self, request, *args, **kwargs):
+        product_id = request.data.get('id')
+        response = super().delete(request, *args, **kwargs)
+        
+        if response.status_code == 204: # 204 No Content response
+            cache.delete(f"product_data_{product_id}")
+        return response
