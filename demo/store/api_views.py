@@ -9,7 +9,9 @@ from .serializers import ProductSerializer
 from .models import Product
 
 class ProductsPagination(LimitOffsetPagination):
-    """ Pagination class, with internal properties"""
+    """ Pagination class, with internal properties
+        See documentation in: https://www.django-rest-framework.org/api-guide/pagination/
+    """
     default_limit = 3 
     max_limit = 100
 
