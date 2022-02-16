@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework.generics import ListAPIView
 from django_filters.rest_framework import DjangoFilterBackend # Create some filters for the API
+from rest_framework.filters import SearchFilter
 
 from .serializers import ProductSerializer
 from .models import Product
@@ -8,8 +9,9 @@ from .models import Product
 class ProductList(ListAPIView): # Extends from ListAPIView (only GET request)
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, SearchFilter) # Integrate DjangoFilterBackend, SearchFilter as the filters of the API
     filter_fields = ('id',)
+    search_fields = ('name', 'description') # Search fields from Product model 
     
     def get_queryset(self):
         
