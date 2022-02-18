@@ -5,6 +5,9 @@ class CartItemSerializer(serializers.ModelSerializer):
     """ Serializer of the model 'CartItemSerializer', who has a Foreign key
         with 'Product' model.
     """
+    # Add integer fields
+    quantity = serializers.IntegerField(min_value=1, max_value=100)
+    
     class Meta:
         model = ShoppingCartItem
         fields = ('product', 'quantity')
@@ -16,6 +19,11 @@ class ProductSerializer(serializers.ModelSerializer):
     current_price = serializers.FloatField(read_only=True)
     description = serializers.CharField(min_length=2, max_length=200)
     cart_items = serializers.SerializerMethodField()
+    # price = serializers.FloatField(min_value=1.0, max_value=100000.0)
+    price = serializers.DecimalField(
+        min_value=1.0, max_value=100000.0,
+        max_digits=None, decimal_places=2,
+        )
     
     class Meta:
         """ Metaclass to setup the serializer """
@@ -24,7 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
         # Set the fields to display respect the model (attr)
         fields = (
             'id', 'name', 'description', 'price', 'sale_start', 'sale_end',
-            'is_on_sale', 'current_price', 
+            'is_on_sale', 'current_price', 'cart_items',
             ) 
     
     def get_cart_items(self, instance):
