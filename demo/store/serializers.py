@@ -1,3 +1,4 @@
+from logging import PlaceHolder
 from rest_framework import serializers
 from .models import Product, ShoppingCartItem
 
@@ -24,6 +25,16 @@ class ProductSerializer(serializers.ModelSerializer):
         min_value=1.0, max_value=100000.0,
         max_digits=None, decimal_places=2,
         )
+    sale_start = serializers.DateTimeField(
+        input_formats=['%I:%M %p %d %B %Y'], format=None, allow_null=True,
+        help_text='Accepted format is "12:01 PM 16 April 2019"',
+        style={'input_type':'text', 'placeholder': '12:01 AM 28 July 2019'},
+    )
+    sale_end = serializers.DateTimeField(
+        input_formats=['%I:%M %p %d %B %Y'], format=None, allow_null=True,
+        help_text='Accepted format is "12:01 PM 16 April 2019"',
+        style={'input_type':'text', 'placeholder': '12:01 AM 28 July 2019'},
+    )
     
     class Meta:
         """ Metaclass to setup the serializer """
