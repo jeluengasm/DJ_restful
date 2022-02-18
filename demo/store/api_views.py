@@ -1,6 +1,6 @@
 from xml.dom import ValidationErr
 from django.utils import timezone
-from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView
 from django_filters.rest_framework import DjangoFilterBackend # Create some filters for the API (according to the attributes selected from the view)
 from rest_framework.filters import SearchFilter # Create a search filter (based on substrings, according to the attributes selected from the view)
 from rest_framework.pagination import LimitOffsetPagination # Allows the pagination of the view
@@ -61,12 +61,14 @@ class ProductCreate(CreateAPIView):
             raise ValidationError({'price': 'A valid number is required.'})
         return super().create(request, *args, **kwargs)
         
-class ProductDestroy(DestroyAPIView,ProductList):
-    """ Used for delete-only endpoints.
-        Provides a DELETE method handler. Doc. in: https://www.django-rest-framework.org/api-guide/generic-views/#destroyapiview
+class ProductRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
+    """ Used for read-write-delete endpoints to represent a single model instance.
+
+    Provides GET, PUT, PATCH and DELETE method handlers.. Doc. in: https://www.django-rest-framework.org/api-guide/generic-views/#retrieveupdatedestroyapiview
     """
     queryset = Product.objects.all()
     lookup_field = 'id'
+    serializer_class = ProductSerializer
     
     def delete(self, request, *args, **kwargs):
         product_id = request.data.get('id')
@@ -74,4 +76,16 @@ class ProductDestroy(DestroyAPIView,ProductList):
         
         if response.status_code == 204: # 204 No Content response
             cache.delete(f"product_data_{product_id}")
+        return response
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        
+        if response.status_code == 200: # 200 OK response
+            product = response.data
+            cache.set(f"product_data_{product['id']}",{
+                                                       'name': product['name'],
+                                                       'description': product['description'],
+                                                       'price': product['price'],
+                                                    })  
         return response
