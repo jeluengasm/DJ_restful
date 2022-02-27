@@ -32,6 +32,9 @@ class Product(models.Model):
 
     def __repr__(self):
         return '<Product object ({}) "{}">'.format(self.id, self.name)
+    
+    def __str__(self):
+        return self.name
 
 class ShoppingCart(models.Model):
     TAX_RATE = 0.13

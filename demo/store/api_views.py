@@ -1,14 +1,17 @@
+from cgitb import lookup
 from xml.dom import ValidationErr
 from django.utils import timezone
-from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, \
+                                    RetrieveUpdateDestroyAPIView, \
+                                    GenericAPIView
 from django_filters.rest_framework import DjangoFilterBackend # Create some filters for the API (according to the attributes selected from the view)
 from rest_framework.filters import SearchFilter # Create a search filter (based on substrings, according to the attributes selected from the view)
 from rest_framework.pagination import LimitOffsetPagination # Allows the pagination of the view
 from rest_framework.exceptions import ValidationError # Exception handler to raise in ValidationError
 from django.core.cache import cache
+from rest_framework.response import Response
 
-
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, ProductStatSerializer
 from .models import Product
 
 class ProductsPagination(LimitOffsetPagination):
@@ -89,3 +92,36 @@ class ProductRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
                                                        'price': product['price'],
                                                     })  
         return response
+    
+class ProductStats(GenericAPIView):
+    """ Generate API View to obtain statistics """
+    lookup_field = 'id'
+    serializer_class = ProductStatSerializer
+    queryset = Product.objects.all()
+    
+        
+    def get(self,request, format=None, id=None):
+        def group_sales_by_date_for(product_category="Mineral", from_date="2016-07-28T00:01:00Z", to_date="2040-07-28T00:01:00Z"):
+            return self.queryset.filter(
+                name__icontains=product_category,
+                sale_start__gte=from_date,
+                sale_end__lte=to_date,
+            ).values()
+            
+            
+        obj = self.get_object()
+        serializer = ProductStatSerializer({
+            # 'stats':{
+            #     '2019-01-01': [5, 10, 15],
+            #     '2019-01-02': [20, 1, 1],
+            # }
+            'stats':{
+                group_sales_by_date_for(
+                    product_category="Mineral", 
+                    from_date="2015-01-01", 
+                    to_date="2039-01-01")
+            },
+        })
+        return Response(serializer.data)
+    
+    

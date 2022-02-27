@@ -51,6 +51,14 @@ class ProductSerializer(serializers.ModelSerializer):
             Note: Getters of the serialized models must be written 'get_<name_of_serializerMethodField>' (cart_items in this case)"""
         items = ShoppingCartItem.objects.filter(product=instance)
         return CartItemSerializer(items, many=True).data
+
+class ProductStatSerializer(serializers.Serializer):
+    stats = serializers.DictField(
+        child=serializers.ListField(
+            child=serializers.IntegerField(),
+        )
+    )
+
     # def to_representation(self, instance):
     #     """ Overrride the serialize representation and add extra fields. """
     #     data = super().to_representation(instance)
