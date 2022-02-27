@@ -1,3 +1,4 @@
+from email.policy import default
 from logging import PlaceHolder
 from rest_framework import serializers
 from .models import Product, ShoppingCartItem
@@ -36,6 +37,9 @@ class ProductSerializer(serializers.ModelSerializer):
         style={'input_type':'text', 'placeholder': '12:01 AM 28 July 2019'},
     )
     
+    photo = serializers.ImageField(default=None)
+    warranty = serializers.FileField(write_only=True, default=None)
+    
     class Meta:
         """ Metaclass to setup the serializer """
         # Set the model object to serialize
@@ -43,7 +47,7 @@ class ProductSerializer(serializers.ModelSerializer):
         # Set the fields to display respect the model (attr)
         fields = (
             'id', 'name', 'description', 'price', 'sale_start', 'sale_end',
-            'is_on_sale', 'current_price', 'cart_items',
+            'is_on_sale', 'current_price', 'cart_items', 'photo', 'warranty', 
             ) 
     
     def get_cart_items(self, instance):
@@ -51,6 +55,14 @@ class ProductSerializer(serializers.ModelSerializer):
             Note: Getters of the serialized models must be written 'get_<name_of_serializerMethodField>' (cart_items in this case)"""
         items = ShoppingCartItem.objects.filter(product=instance)
         return CartItemSerializer(items, many=True).data
+    
+    def update(self, instance, validated_data):
+        if validated_data.get('warranty', None):
+            instance.description += '\nWarranty information:\n'
+            instance.description += b'; '.join(
+                validated_data['warranty'].readlines()
+            ).decode()
+        return instance
 
 class ProductStatSerializer(serializers.Serializer):
     stats = serializers.DictField(

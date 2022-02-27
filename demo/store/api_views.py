@@ -111,16 +111,16 @@ class ProductStats(GenericAPIView):
             
         obj = self.get_object()
         serializer = ProductStatSerializer({
-            # 'stats':{
-            #     '2019-01-01': [5, 10, 15],
-            #     '2019-01-02': [20, 1, 1],
-            # }
             'stats':{
-                group_sales_by_date_for(
-                    product_category="Mineral", 
-                    from_date="2015-01-01", 
-                    to_date="2039-01-01")
-            },
+                '2019-01-01': [5, 10, 15],
+                '2019-01-02': [20, 1, 1],
+            }
+            # 'stats':{
+            #     group_sales_by_date_for(
+            #         product_category="Mineral", 
+            #         from_date="2015-01-01", 
+            #         to_date="2039-01-01")
+            # },
         })
         return Response(serializer.data)
     
